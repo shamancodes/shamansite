@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShamanHub — ShamanCode Script Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
+          colors: {
+            obsidian: '#09090B',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --bg-base: #09090B;
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-border-strong: rgba(255, 255, 255, 0.18);
+      --glass-top-highlight: rgba(255, 255, 255, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background-color: var(--bg-base);
+      color: #F4F4F5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Multi-layered liquid silver ambient orbs behind frosted glass — macOS elegance, zero neon */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(58% 36% at 50% -6%, rgba(255, 255, 255, 0.11) 0%, rgba(228, 228, 231, 0.03) 48%, transparent 100%),
+        radial-gradient(38% 32% at 86% 24%, rgba(244, 244, 245, 0.055) 0%, rgba(161, 161, 170, 0.015) 45%, transparent 100%),
+        radial-gradient(36% 32% at 14% 56%, rgba(228, 228, 231, 0.048) 0%, rgba(113, 113, 122, 0.012) 48%, transparent 100%),
+        radial-gradient(44% 30% at 52% 96%, rgba(255, 255, 255, 0.045) 0%, transparent 100%);
+    }
+
+    @keyframes slowFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(18px, -14px, 0) scale(1.04); }
+    }
+
+    .ambient-orb {
+      position: fixed;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(95px);
+      animation: slowFloat 16s ease-in-out infinite;
+    }
+
+    .ambient-orb-1 {
+      width: 460px;
+      height: 260px;
+      top: 120px;
+      left: 50%;
+      margin-left: -230px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.09) 0%, transparent 72%);
+    }
+
+    .ambient-orb-2 {
+      width: 340px;
+      height: 340px;
+      top: 52%;
+      right: -80px;
+      background: radial-gradient(circle, rgba(212, 212, 216, 0.065) 0%, transparent 72%);
+      animation-delay: -6s;
+    }
+
+    .subtle-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse 82% 58% at 50% 14%, black 22%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 82% 58% at 50% 14%, black 22%, transparent 100%);
+    }
+
+    /* Ultra-clean macOS Frosted Glass Pill Navbar */
+    .glass-nav {
+      background: linear-gradient(180deg, rgba(28, 28, 34, 0.68) 0%, rgba(15, 15, 19, 0.76) 100%);
+      backdrop-filter: blur(28px) saturate(165%);
+      -webkit-backdrop-filter: blur(28px) saturate(165%);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      box-shadow:
+        0 18px 48px -12px rgba(0, 0, 0, 0.82),
+        0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-nav.scrolled {
+      background: linear-gradient(180deg, rgba(22, 22, 28, 0.84) 0%, rgba(12, 12, 16, 0.9) 100%);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow:
+        0 24px 56px -14px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    /* macOS Frosted Window */
+    .mac-window {
+      background: linear-gradient(160deg, rgba(34, 34, 42, 0.62) 0%, rgba(16, 16, 20, 0.82) 55%, rgba(11, 11, 14, 0.9) 100%);
+      backdrop-filter: blur(32px) saturate(160%);
+      -webkit-backdrop-filter: blur(32px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow:
+        0 36px 90px -24px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(255, 255, 255, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+      transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .mac-window.highlight-pulse {
+      border-color: rgba(255, 255, 255, 0.34);
+      box-shadow:
+        0 36px 96px -20px rgba(0, 0, 0, 0.94),
+        0 0 0 1px rgba(255, 255, 255, 0.18),
+        0 0 46px -10px rgba(255, 255, 255, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    /* Elevated Frosted Glass Spotlight Cards */
+    .spotlight-card {
+      position: relative;
+      border-radius: 1.125rem;
+      background: linear-gradient(155deg, rgba(255, 255, 255, 0.062) 0%, rgba(255, 255, 255, 0.022) 48%, rgba(255, 255, 255, 0.012) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.095);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      box-shadow:
+        0 14px 36px -18px rgba(0, 0, 0, 0.78),
+        inset 0 1px 0 rgba(255, 255, 255, 0.13),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.02);
+      overflow: hidden;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, border-color 0.3s ease, box-shadow 0.35s ease;
+    }
+
+    .spotlight-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: radial-gradient(
+        290px circle at var(--mouse-x, -300px) var(--mouse-y, -300px),
+        rgba(255, 255, 255, 0.52),
+        rgba(255, 255, 255, 0.12) 44%,
+        transparent 75%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .spotlight-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        340px circle at var(--mouse-x, -300px) var(--mouse-y, -300px),
+        rgba(255, 255, 255, 0.075),
+        transparent 68%
+      );
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .spotlight-card:hover::before,
+    .spotlight-card:hover::after {
+      opacity: 1;
+    }
+
+    .spotlight-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow:
+        0 26px 56px -20px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Featured Pricing Glass Card */
+    .pricing-featured {
+      background: linear-gradient(155deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.038) 52%, rgba(255, 255, 255, 0.018) 100%);
+      border-color: rgba(255, 255, 255, 0.22);
+      box-shadow:
+        0 26px 64px -22px rgba(0, 0, 0, 0.9),
+        0 0 42px -16px rgba(255, 255, 255, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    /* Generic frosted glass surface */
+    .glass-surface {
+      background: linear-gradient(155deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.018) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.095);
+      backdrop-filter: blur(22px) saturate(150%);
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
+      box-shadow:
+        0 12px 32px -18px rgba(0, 0, 0, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    /* Specular shine button */
+    .btn-glass-white {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, #FFFFFF 0%, #E4E4E7 100%);
+      color: #09090B;
+      box-shadow:
+        0 2px 16px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, filter 0.2s ease;
+    }
+
+    .btn-glass-white:hover {
+      filter: brightness(1.04);
+      box-shadow:
+        0 4px 24px rgba(255, 255, 255, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+    }
+
+    .btn-glass-white:active {
+      transform: scale(0.97);
+    }
+
+    .btn-glass-dark {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.035) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .btn-glass-dark:hover {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    /* Thumbnail backdrop glass badge */
+    .thumb-badge {
+      background: rgba(12, 12, 16, 0.62);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    /* Filter pill active state */
+    .filter-pill {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: #A1A1AA;
+      transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .filter-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
+      color: #F4F4F5;
+    }
+
+    .filter-pill.active {
+      background: linear-gradient(180deg, #FFFFFF 0%, #E4E4E7 100%);
+      border-color: #FFFFFF;
+      color: #09090B;
+      box-shadow: 0 2px 16px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Payment method pill */
+    .pay-pill {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      transition: all 0.2s ease;
+    }
+
+    .pay-pill:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .pay-pill.active {
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #FFFFFF;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    }
+
+    /* Smooth Framer-Motion-like reveal animations */
+    .motion-reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      transition:
+        opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .motion-reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Soft silver gradient text */
+    .silver-heading {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F4F4F5 52%, #8E8E98 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Subtle green status pulse */
+    @keyframes statusPulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+      }
+      70% {
+        box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
+      }
+    }
+
+    .status-dot-pulse {
+      animation: statusPulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Toast animation */
+    .toast-pill {
+      transform: translate(-50%, 18px) scale(0.96);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.25s ease;
+    }
+
+    .toast-pill.show {
+      transform: translate(-50%, 0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Modal backdrop and sheet */
+    .modal-overlay {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-panel {
+      transform: translateY(14px) scale(0.97);
+      transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .modal-overlay.open .modal-panel {
+      transform: translateY(0) scale(1);
+    }
+
+    /* Executor pill active state */
+    .executor-pill {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .executor-pill:hover {
+      background: rgba(255, 255, 255, 0.075);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .executor-pill.active {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.32);
+      color: #FFFFFF;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Line clamp helper */
+    .clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090B;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+  </style>
+</head>
+<body class="bg-obsidian text-zinc-100 selection:bg-white/20 selection:text-white">
+  <div class="ambient-canvas" aria-hidden="true"></div>
+  <div class="ambient-orb ambient-orb-1" aria-hidden="true"></div>
+  <div class="ambient-orb ambient-orb-2" aria-hidden="true"></div>
+  <div class="subtle-grid" aria-hidden="true"></div>
+
+  <!-- 1. Floating Glass Navbar -->
+  <header class="fixed top-4 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
+    <nav id="mainNav" class="glass-nav pointer-events-auto rounded-full px-3 sm:px-4 py-2 flex items-center justify-between gap-2 sm:gap-5 w-full max-w-3xl">
+      <!-- Brand -->
+      <a href="#top" class="flex items-center gap-2.5 pl-1.5 group focus:outline-none shrink-0">
+        <span class="w-7 h-7 rounded-full bg-gradient-to-b from-white/20 to-white/5 border border-white/20 flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-105">
+          <i data-lucide="terminal" class="w-3.5 h-3.5 text-zinc-100"></i>
+        </span>
+        <span class="text-sm font-semibold tracking-tight text-white">ShamanCode</span>
+      </a>
+
+      <!-- Desktop Links -->
+      <div class="hidden md:flex items-center gap-1 text-[13px] font-medium text-zinc-400 whitespace-nowrap">
+        <a href="#scripts" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/[0.06] transition-colors whitespace-nowrap">Scripts</a>
+        <button id="openKeyNavBtn" type="button" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/[0.06] transition-colors whitespace-nowrap">Key System</button>
+        <a href="#status" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/[0.06] transition-colors whitespace-nowrap">Status</a>
+        <a href="#community" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/[0.06] transition-colors whitespace-nowrap">Discord</a>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <a href="#buy-key" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full btn-glass-dark text-[12px] font-medium text-zinc-200 hover:text-white">
+          <i data-lucide="key-round" class="w-3.5 h-3.5 text-zinc-300"></i>
+          <span>Buy Key</span>
+        </a>
+        <button id="getScriptNavBtn" type="button" class="btn-glass-white px-3.5 py-1.5 rounded-full text-[13px] font-semibold tracking-tight flex items-center gap-1.5">
+          <span>Get Script</span>
+          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+        </button>
+        <button id="mobileMenuBtn" type="button" aria-label="Toggle navigation menu" aria-expanded="false" class="md:hidden w-8 h-8 rounded-full border border-white/12 bg-white/[0.05] flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/[0.1] transition-colors">
+          <i data-lucide="menu" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobileMenu" class="hidden md:hidden pointer-events-auto fixed top-[74px] left-4 right-4 max-w-3xl mx-auto rounded-2xl glass-nav p-3 flex-col gap-1 text-sm font-medium text-zinc-300">
+      <a href="#scripts" class="mobile-nav-link px-3.5 py-2.5 rounded-xl hover:bg-white/[0.06] hover:text-white transition-colors flex items-center justify-between">
+        <span>Scripts</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500"></i>
+      </a>
+      <button id="openKeyMobileBtn" type="button" class="mobile-nav-link w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-white/[0.06] hover:text-white transition-colors flex items-center justify-between">
+        <span>Key System</span>
+        <i data-lucide="key-round" class="w-4 h-4 text-zinc-500"></i>
+      </button>
+      <a href="#buy-key" class="mobile-nav-link px-3.5 py-2.5 rounded-xl hover:bg-white/[0.06] hover:text-white transition-colors flex items-center justify-between">
+        <span>Buy Key</span>
+        <i data-lucide="crown" class="w-4 h-4 text-zinc-500"></i>
+      </a>
+      <a href="#status" class="mobile-nav-link px-3.5 py-2.5 rounded-xl hover:bg-white/[0.06] hover:text-white transition-colors flex items-center justify-between">
+        <span>Status</span>
+        <i data-lucide="activity" class="w-4 h-4 text-zinc-500"></i>
+      </a>
+      <a href="#community" class="mobile-nav-link px-3.5 py-2.5 rounded-xl hover:bg-white/[0.06] hover:text-white transition-colors flex items-center justify-between">
+        <span>Discord</span>
+        <i data-lucide="message-square" class="w-4 h-4 text-zinc-500"></i>
+      </a>
+    </div>
+  </header>
+
+  <main id="top" class="relative z-10 max-w-6xl mx-auto px-5 sm:px-6 pt-32 sm:pt-36 pb-20">
+
+    <!-- 2. Hero Section -->
+    <section class="text-center max-w-3xl mx-auto">
+      <div class="motion-reveal inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-surface text-xs font-medium text-zinc-300 mb-6">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 status-dot-pulse"></span>
+        <span>ShamanCode Official</span>
+        <span class="text-zinc-600">•</span>
+        <span class="text-zinc-400">Universal Build v2.4</span>
+      </div>
+
+      <h1 class="motion-reveal silver-heading text-5xl sm:text-6xl md:text-7xl font-semibold tracking-[-0.045em] leading-[1.04] mb-5" style="transition-delay: 60ms;">
+        ShamanHub
+      </h1>
+
+      <p class="motion-reveal text-zinc-400 text-base sm:text-lg leading-relaxed max-w-xl mx-auto mb-8 font-normal" style="transition-delay: 110ms;">
+        Curated Lua scripts and universal modules engineered for zero-latency execution, silent stability, and instant compatibility across modern executors.
+      </p>
+
+      <!-- Hero Quick Actions -->
+      <div class="motion-reveal flex flex-wrap items-center justify-center gap-2.5 mb-10" style="transition-delay: 145ms;">
+        <a href="#scripts" class="btn-glass-white px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold inline-flex items-center gap-2">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span>Browse Scripts</span>
+        </a>
+        <a href="#buy-key" class="btn-glass-dark px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium text-zinc-100 inline-flex items-center gap-2">
+          <i data-lucide="key-round" class="w-4 h-4 text-zinc-300"></i>
+          <span>Buy Premium Key</span>
+        </a>
+      </div>
+
+      <!-- macOS-style Code Window -->
+      <div id="loader" class="motion-reveal max-w-2xl mx-auto text-left scroll-mt-28" style="transition-delay: 180ms;">
+        <div id="macWindow" class="mac-window rounded-2xl overflow-hidden">
+          <!-- Window Titlebar -->
+          <div class="px-4 py-3 border-b border-white/[0.08] bg-white/[0.025] flex items-center justify-between gap-3">
+            <!-- macOS Traffic Lights -->
+            <div class="flex items-center gap-2 shrink-0" aria-hidden="true">
+              <span class="w-3 h-3 rounded-full bg-[#FF5F56] border border-black/25 shadow-inner"></span>
+              <span class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-black/25 shadow-inner"></span>
+              <span class="w-3 h-3 rounded-full bg-[#27C93F] border border-black/25 shadow-inner"></span>
+            </div>
+
+            <!-- Window Title -->
+            <div class="flex items-center gap-1.5 text-xs font-medium text-zinc-300 truncate">
+              <i data-lucide="file-code-2" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
+              <span class="truncate">Shamancode Universal Loader</span>
+            </div>
+
+            <!-- Copy Action -->
+            <button id="copyLoaderBtn" type="button" class="btn-glass-dark shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-zinc-100 active:scale-[0.97]">
+              <i id="copyIcon" data-lucide="copy" class="w-3.5 h-3.5 text-zinc-300"></i>
+              <span id="copyBtnLabel">Copy</span>
+            </button>
+          </div>
+
+          <!-- Code Body -->
+          <div class="p-4 sm:p-5 bg-black/40">
+            <div class="flex items-start gap-4 overflow-x-auto pb-1">
+              <div class="select-none font-mono text-xs leading-6 text-zinc-600 text-right shrink-0" aria-hidden="true">
+                <div>1</div>
+                <div>2</div>
+              </div>
+              <pre id="loaderCode" class="font-mono text-xs sm:text-[13px] leading-6 text-zinc-200 whitespace-pre select-all"><code><span class="text-zinc-500">-- Shamancode Universal Loader</span>
+<span class="text-zinc-100 font-medium">loadstring</span><span class="text-zinc-400">(</span><span class="text-zinc-300">game</span><span class="text-zinc-400">:</span><span class="text-zinc-100">HttpGet</span><span class="text-zinc-400">(</span><span class="text-zinc-300">"https://shamancode.example/universal-loader.lua"</span><span class="text-zinc-400">))()</span></code></pre>
+            </div>
+          </div>
+
+          <!-- Window Footer Bar -->
+          <div class="px-4 py-2.5 border-t border-white/[0.07] bg-white/[0.02] flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-400">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center gap-1.5 text-zinc-300">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-zinc-300"></i>
+                <span>Auto-Detect PlaceId</span>
+              </span>
+              <span class="hidden sm:inline text-zinc-700">|</span>
+              <span class="hidden sm:inline text-zinc-500">Luau • UTF-8</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <button id="openKeyInlineBtn" type="button" class="text-zinc-300 hover:text-white inline-flex items-center gap-1 transition-colors">
+                <span>Need a key?</span>
+                <i data-lucide="chevron-right" class="w-3 h-3"></i>
+              </button>
+              <span class="text-zinc-700">•</span>
+              <a href="#buy-key" class="text-white hover:text-zinc-200 font-medium inline-flex items-center gap-1 transition-colors">
+                <span>Buy Key</span>
+                <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Rscripts-Style Script Library (Thumbnail Cards + Search & Filters) -->
+    <section id="scripts" class="mt-24 sm:mt-28 scroll-mt-28">
+      <div class="motion-reveal flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+        <div>
+          <div class="inline-flex items-center gap-2 mb-2">
+            <span class="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">Script Library</span>
+            <span id="scriptCountBadge" class="text-[11px] font-mono text-zinc-300 px-2.5 py-0.5 rounded-full glass-surface">6 Releases</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white">Featured Scripts</h2>
+        </div>
+        <p class="text-sm text-zinc-400 max-w-md">
+          Rscripts-inspired library with 16:9 thumbnail previews, instant one-click copy, and GitHub-ready script cards.
+        </p>
+      </div>
+
+      <!-- Search & Filter Bar -->
+      <div class="motion-reveal glass-surface rounded-2xl p-3 sm:p-3.5 mb-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          <input
+            id="scriptSearchInput"
+            type="text"
+            placeholder="Search scripts, games, or features (e.g. Aimbot, ESP, Keyless)..."
+            class="w-full pl-10 pr-9 py-2 rounded-xl bg-black/45 border border-white/[0.08] text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
+          />
+          <button id="clearSearchBtn" type="button" aria-label="Clear search" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-lg hover:bg-white/[0.08] items-center justify-center text-zinc-400 hover:text-white transition-colors">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div id="scriptFilterGroup" class="flex items-center gap-1.5 overflow-x-auto pb-0.5 lg:pb-0">
+          <button type="button" data-filter="all" class="filter-pill active shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium">All</button>
+          <button type="button" data-filter="universal" class="filter-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium">Universal</button>
+          <button type="button" data-filter="keyless" class="filter-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium">Keyless</button>
+          <button type="button" data-filter="verified" class="filter-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium">Verified</button>
+          <button type="button" data-filter="mobile" class="filter-pill shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium">Mobile</button>
+        </div>
+      </div>
+
+      <!-- Dynamic Rscripts-Style Grid -->
+      <div id="scriptLibraryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <!-- Empty Search State -->
+      <div id="scriptEmptyState" class="hidden glass-surface rounded-2xl p-10 text-center">
+        <div class="w-11 h-11 rounded-2xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center mx-auto mb-3 text-zinc-400">
+          <i data-lucide="search-x" class="w-5 h-5"></i>
+        </div>
+        <p class="text-sm font-medium text-white mb-1">No matching scripts found</p>
+        <p class="text-xs text-zinc-500 mb-4">Try clearing your search or switching category filters.</p>
+        <button id="resetFiltersBtn" type="button" class="btn-glass-white px-4 py-1.5 rounded-xl text-xs font-semibold">
+          Reset Filters
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. Buy Key Section (Premium Frosted Glass Plans) -->
+    <section id="buy-key" class="mt-24 sm:mt-28 scroll-mt-28">
+      <div class="motion-reveal flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <div class="inline-flex items-center gap-2 mb-2">
+            <span class="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">Premium Access</span>
+            <span class="text-[11px] font-mono text-zinc-300 px-2.5 py-0.5 rounded-full glass-surface">Instant Delivery</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white">Buy Key</h2>
+        </div>
+        <p class="text-sm text-zinc-400 max-w-md">
+          Skip checkpoints permanently with HWID-locked keys, priority script updates, and instant keyless execution.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+        <!-- Plan 1: Weekly -->
+        <div class="spotlight-card motion-reveal p-6 flex flex-col">
+          <div class="relative z-10 flex items-center justify-between gap-2 mb-5">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.11] flex items-center justify-center text-zinc-200">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+              </span>
+              <div>
+                <h3 class="text-base font-semibold text-white tracking-tight">Weekly Key</h3>
+                <p class="text-[11px] text-zinc-500">7-Day Full Access</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative z-10 mb-5 flex items-baseline gap-1.5">
+            <span class="text-3xl font-semibold tracking-tight text-white">$2.99</span>
+            <span class="text-xs text-zinc-500">/ 7 days</span>
+          </div>
+
+          <ul class="relative z-10 space-y-2.5 text-xs text-zinc-300 mb-6 flex-1">
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-zinc-200 shrink-0"></i>
+              <span>Zero checkpoints &amp; instant execution</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-zinc-200 shrink-0"></i>
+              <span>All Universal &amp; game-specific scripts</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-zinc-200 shrink-0"></i>
+              <span>Automatic HWID sync</span>
+            </li>
+          </ul>
+
+          <button type="button" data-buy-plan="weekly" class="relative z-10 w-full py-2.5 rounded-xl btn-glass-dark text-xs font-semibold text-white inline-flex items-center justify-center gap-1.5">
+            <span>Buy Weekly Key</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Plan 2: Monthly (Featured) -->
+        <div class="spotlight-card pricing-featured motion-reveal p-6 flex flex-col" style="transition-delay: 60ms;">
+          <div class="relative z-10 flex items-center justify-between gap-2 mb-5">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-white/[0.14] border border-white/[0.22] flex items-center justify-center text-white shadow-inner">
+                <i data-lucide="key-round" class="w-4 h-4"></i>
+              </span>
+              <div>
+                <h3 class="text-base font-semibold text-white tracking-tight">Monthly Key</h3>
+                <p class="text-[11px] text-zinc-400">30-Day Full Access</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white text-zinc-950 tracking-tight">
+              Popular
+            </span>
+          </div>
+
+          <div class="relative z-10 mb-5 flex items-baseline gap-1.5">
+            <span class="text-3xl font-semibold tracking-tight text-white">$6.99</span>
+            <span class="text-xs text-zinc-400">/ 30 days</span>
+          </div>
+
+          <ul class="relative z-10 space-y-2.5 text-xs text-zinc-200 mb-6 flex-1">
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-white shrink-0"></i>
+              <span>Everything in Weekly Key</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-white shrink-0"></i>
+              <span>Priority script updates &amp; configs</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-white shrink-0"></i>
+              <span>Private Discord buyer role</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-white shrink-0"></i>
+              <span>1 free HWID reset per month</span>
+            </li>
+          </ul>
+
+          <button type="button" data-buy-plan="monthly" class="relative z-10 w-full py-2.5 rounded-xl btn-glass-white text-xs font-semibold inline-flex items-center justify-center gap-1.5">
+            <span>Buy Monthly Key</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Plan 3: Lifetime -->
+        <div class="spotlight-card motion-reveal p-6 flex flex-col" style="transition-delay: 120ms;">
+          <div class="relative z-10 flex items-center justify-between gap-2 mb-5">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.11] flex items-center justify-center text-zinc-200">
+                <i data-lucide="crown" class="w-4 h-4"></i>
+              </span>
+              <div>
+                <h3 class="text-base font-semibold text-white tracking-tight">Lifetime Key</h3>
+                <p class="text-[11px] text-zinc-500">Permanent License</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono text-zinc-300 bg-white/[0.06] border border-white/[0.1]">
+              Best Value
+            </span>
+          </div>
+
+          <div class="relative z-10 mb-5 flex items-baseline gap-1.5">
+            <span class="text-3xl font-semibold tracking-tight text-white">$19.99</span>
+            <span class="text-xs text-zinc-500">/ one-time</span>
+          </div>
+
+          <ul class="relative z-10 space-y-2.5 text-xs text-zinc-300 mb-6 flex-1">
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-zinc-200 shrink-0"></i>
+              <span>Permanent keyless access forever</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-zinc-200 shrink-0"></i>
+              <span>Early access to beta modules</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-zinc-200 shrink-0"></i>
+              <span>VIP Discord role &amp; direct support</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-zinc-200 shrink-0"></i>
+              <span>Unlimited HWID resets</span>
+            </li>
+          </ul>
+
+          <button type="button" data-buy-plan="lifetime" class="relative z-10 w-full py-2.5 rounded-xl btn-glass-dark text-xs font-semibold text-white inline-flex items-center justify-center gap-1.5">
+            <span>Buy Lifetime Key</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Core Modules Spotlight Grid (4 Glass Cards with Mouse-Following Border Glow) -->
+    <section id="modules" class="mt-24 scroll-mt-28">
+      <div class="motion-reveal flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-7">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500 mb-2">Core Architecture</p>
+          <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white">Engineered for precision</h2>
+        </div>
+        <p class="text-sm text-zinc-400 max-w-sm">
+          Four modular subsystems powering ShamanHub with clean visual clarity. Click any card to inspect specs.
+        </p>
+      </div>
+
+      <div id="spotlightGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Aimbot -->
+        <button type="button" data-module="aimbot" class="spotlight-card motion-reveal text-left p-5 group focus:outline-none focus:ring-1 focus:ring-white/25">
+          <div class="relative z-10 flex items-start justify-between gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.11] flex items-center justify-center text-zinc-200 group-hover:bg-white/[0.12] transition-colors">
+              <i data-lucide="crosshair" class="w-4 h-4"></i>
+            </div>
+            <span class="text-[10px] font-mono text-zinc-400 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+              Sub-ms
+            </span>
+          </div>
+          <div class="relative z-10">
+            <h3 class="text-base font-semibold text-white tracking-tight mb-1.5 flex items-center gap-1.5">
+              <span>Aimbot</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-zinc-500 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all"></i>
+            </h3>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-3.5">
+              Bezier smoothing curves, dynamic FOV ring, velocity prediction, and wall-check filters.
+            </p>
+            <div class="flex flex-wrap gap-1 text-[10px] text-zinc-400">
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Smooth</span>
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Bone Priority</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Card 2: ESP -->
+        <button type="button" data-module="esp" class="spotlight-card motion-reveal text-left p-5 group focus:outline-none focus:ring-1 focus:ring-white/25" style="transition-delay: 50ms;">
+          <div class="relative z-10 flex items-start justify-between gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.11] flex items-center justify-center text-zinc-200 group-hover:bg-white/[0.12] transition-colors">
+              <i data-lucide="scan-eye" class="w-4 h-4"></i>
+            </div>
+            <span class="text-[10px] font-mono text-zinc-400 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+              Drawing API
+            </span>
+          </div>
+          <div class="relative z-10">
+            <h3 class="text-base font-semibold text-white tracking-tight mb-1.5 flex items-center gap-1.5">
+              <span>ESP</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-zinc-500 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all"></i>
+            </h3>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-3.5">
+              Crisp 2D/3D boxes, skeleton rigs, health bars, and distance tags with near-zero FPS drop.
+            </p>
+            <div class="flex flex-wrap gap-1 text-[10px] text-zinc-400">
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Boxes</span>
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Chams</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Card 3: Skin Changer -->
+        <button type="button" data-module="skinchanger" class="spotlight-card motion-reveal text-left p-5 group focus:outline-none focus:ring-1 focus:ring-white/25" style="transition-delay: 100ms;">
+          <div class="relative z-10 flex items-start justify-between gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.11] flex items-center justify-center text-zinc-200 group-hover:bg-white/[0.12] transition-colors">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+            </div>
+            <span class="text-[10px] font-mono text-zinc-400 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+              Instant Swap
+            </span>
+          </div>
+          <div class="relative z-10">
+            <h3 class="text-base font-semibold text-white tracking-tight mb-1.5 flex items-center gap-1.5">
+              <span>Skin Changer</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-zinc-500 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all"></i>
+            </h3>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-3.5">
+              Real-time weapon finish and cosmetic switching with persistent JSON loadout presets.
+            </p>
+            <div class="flex flex-wrap gap-1 text-[10px] text-zinc-400">
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Presets</span>
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Auto-Apply</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- Card 4: Unlock All -->
+        <button type="button" data-module="unlockall" class="spotlight-card motion-reveal text-left p-5 group focus:outline-none focus:ring-1 focus:ring-white/25" style="transition-delay: 150ms;">
+          <div class="relative z-10 flex items-start justify-between gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.11] flex items-center justify-center text-zinc-200 group-hover:bg-white/[0.12] transition-colors">
+              <i data-lucide="unlock" class="w-4 h-4"></i>
+            </div>
+            <span class="text-[10px] font-mono text-zinc-400 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+              One-Click
+            </span>
+          </div>
+          <div class="relative z-10">
+            <h3 class="text-base font-semibold text-white tracking-tight mb-1.5 flex items-center gap-1.5">
+              <span>Unlock All</span>
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-zinc-500 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all"></i>
+            </h3>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-3.5">
+              Unified catalog indexing for supported titles with instant one-toggle state revert.
+            </p>
+            <div class="flex flex-wrap gap-1 text-[10px] text-zinc-400">
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Catalog</span>
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07]">Safe Revert</span>
+            </div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- 6. Trust & Status Bar -->
+    <section id="status" class="mt-20 sm:mt-24 scroll-mt-28">
+      <div class="motion-reveal glass-surface rounded-2xl p-5 sm:p-6">
+        <!-- Top Metrics & Status Row -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-white/[0.08]">
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Status Badge -->
+            <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white/[0.04] border border-white/[0.1]">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 status-dot-pulse"></span>
+              <span class="text-xs sm:text-[13px] font-medium text-zinc-200">Status: <span class="text-white">Undetected &amp; Online</span></span>
+            </div>
+
+            <!-- Discord Members Badge -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/[0.04] border border-white/[0.1]">
+              <i data-lucide="users" class="w-3.5 h-3.5 text-zinc-400"></i>
+              <span class="text-xs sm:text-[13px] font-medium text-zinc-200">5,000+ Discord Members</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-zinc-500 font-mono">
+            Last verified: <span class="text-zinc-300">Operational • 99.9% Uptime</span>
+          </div>
+        </div>
+
+        <!-- Supported Executors -->
+        <div class="pt-5 flex flex-col gap-3.5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span class="text-xs font-medium uppercase tracking-[0.14em] text-zinc-500">Supported Executors</span>
+            <span id="executorDetail" class="text-xs text-zinc-400">Select an executor to inspect UNC compatibility</span>
+          </div>
+
+          <div id="executorList" class="flex flex-wrap items-center gap-2">
+            <button type="button" data-executor="Wave" data-info="Wave — 100% UNC verified • Full Drawing &amp; Hook support" class="executor-pill active px-3.5 py-1.5 rounded-full text-xs font-medium text-zinc-200 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Wave</span>
+            </button>
+            <button type="button" data-executor="Synapse Z" data-info="Synapse Z — 100% UNC verified • Native Luau optimization" class="executor-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Synapse Z</span>
+            </button>
+            <button type="button" data-executor="Solara" data-info="Solara — Verified • Lightweight Universal mode enabled" class="executor-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Solara</span>
+            </button>
+            <button type="button" data-executor="Delta" data-info="Delta — Mobile &amp; Desktop verified • Touch UI ready" class="executor-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Delta</span>
+            </button>
+            <button type="button" data-executor="Fluxus" data-info="Fluxus — Verified • Stable Script Hub execution" class="executor-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Fluxus</span>
+            </button>
+            <button type="button" data-executor="Codex" data-info="Codex — Verified • Cross-platform mobile &amp; desktop" class="executor-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Codex</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Clean Footer -->
+    <footer id="community" class="mt-24 pt-10 border-t border-white/[0.08] scroll-mt-24">
+      <div class="motion-reveal flex flex-col gap-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-full bg-white/[0.07] border border-white/[0.12] flex items-center justify-center">
+              <i data-lucide="terminal" class="w-3.5 h-3.5 text-zinc-200"></i>
+            </span>
+            <div>
+              <p class="text-sm font-semibold text-white tracking-tight">ShamanCode</p>
+              <p class="text-xs text-zinc-500">ShamanHub • Minimalist Script Library</p>
+            </div>
+          </div>
+
+          <p class="text-xs text-zinc-500">
+            Click any handle to copy or connect directly.
+          </p>
+        </div>
+
+        <!-- Minimalist Social Links Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <!-- Discord -->
+          <button type="button" data-copy-text="discord.gg/shamancode" data-copy-label="Discord (shamancode)" class="social-copy-btn glass-surface hover:bg-white/[0.06] hover:border-white/[0.18] rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 transition-all group text-left">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300 group-hover:text-white shrink-0">
+                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="text-[11px] text-zinc-500 leading-none mb-1">Discord</p>
+                <p class="text-xs font-medium text-zinc-200 group-hover:text-white truncate">shamancode</p>
+              </div>
+            </div>
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 shrink-0 transition-colors"></i>
+          </button>
+
+          <!-- Rscripts -->
+          <button type="button" data-copy-text="@shamancode" data-copy-label="Rscripts (@shamancode)" class="social-copy-btn glass-surface hover:bg-white/[0.06] hover:border-white/[0.18] rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 transition-all group text-left">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300 group-hover:text-white shrink-0">
+                <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="text-[11px] text-zinc-500 leading-none mb-1">Rscripts</p>
+                <p class="text-xs font-medium text-zinc-200 group-hover:text-white truncate">@shamancode</p>
+              </div>
+            </div>
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 shrink-0 transition-colors"></i>
+          </button>
+
+          <!-- ScriptBlox -->
+          <button type="button" data-copy-text="@scripterq" data-copy-label="ScriptBlox (@scripterq)" class="social-copy-btn glass-surface hover:bg-white/[0.06] hover:border-white/[0.18] rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 transition-all group text-left">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300 group-hover:text-white shrink-0">
+                <i data-lucide="blocks" class="w-3.5 h-3.5"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="text-[11px] text-zinc-500 leading-none mb-1">ScriptBlox</p>
+                <p class="text-xs font-medium text-zinc-200 group-hover:text-white truncate">@scripterq</p>
+              </div>
+            </div>
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 shrink-0 transition-colors"></i>
+          </button>
+
+          <!-- TikTok -->
+          <button type="button" data-copy-text="@shmanlua" data-copy-label="TikTok (@shmanlua)" class="social-copy-btn glass-surface hover:bg-white/[0.06] hover:border-white/[0.18] rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 transition-all group text-left">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300 group-hover:text-white shrink-0">
+                <i data-lucide="clapperboard" class="w-3.5 h-3.5"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="text-[11px] text-zinc-500 leading-none mb-1">TikTok</p>
+                <p class="text-xs font-medium text-zinc-200 group-hover:text-white truncate">@shmanlua</p>
+              </div>
+            </div>
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 shrink-0 transition-colors"></i>
+          </button>
+
+          <!-- Instagram -->
+          <button type="button" data-copy-text="@ataturkthe" data-copy-label="Instagram (@ataturkthe)" class="social-copy-btn glass-surface hover:bg-white/[0.06] hover:border-white/[0.18] rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 transition-all group text-left">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300 group-hover:text-white shrink-0">
+                <i data-lucide="instagram" class="w-3.5 h-3.5"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="text-[11px] text-zinc-500 leading-none mb-1">Instagram</p>
+                <p class="text-xs font-medium text-zinc-200 group-hover:text-white truncate">@ataturkthe</p>
+              </div>
+            </div>
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 shrink-0 transition-colors"></i>
+          </button>
+
+          <!-- Email -->
+          <a href="mailto:shamanbeydiyeceksin@gmail.com" data-copy-text="shamanbeydiyeceksin@gmail.com" data-copy-label="Email" class="social-copy-btn glass-surface hover:bg-white/[0.06] hover:border-white/[0.18] rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 transition-all group">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300 group-hover:text-white shrink-0">
+                <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="text-[11px] text-zinc-500 leading-none mb-1">Email</p>
+                <p class="text-xs font-medium text-zinc-200 group-hover:text-white truncate">shamanbeydiyeceksin@gmail.com</p>
+              </div>
+            </div>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 shrink-0 transition-colors"></i>
+          </a>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/[0.06] text-xs text-zinc-600">
+          <span>&copy; 2026 ShamanCode. All rights reserved.</span>
+          <span class="font-mono text-[11px] text-zinc-600">ShamanHub v2.4.0 • GitHub Pages Ready</span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Buy Key Checkout Modal -->
+  <div id="buyModal" class="modal-overlay fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="buyModalWindowTitle">
+    <div class="modal-panel mac-window rounded-2xl w-full max-w-md overflow-hidden">
+      <div class="px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#27C93F]"></span>
+          <span id="buyModalWindowTitle" class="ml-2 text-xs font-medium text-zinc-300">ShamanHub Key Checkout</span>
+        </div>
+        <button id="closeBuyModalBtn" type="button" aria-label="Close Buy Key modal" class="w-7 h-7 rounded-lg hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="p-4 rounded-xl bg-white/[0.035] border border-white/[0.09] flex items-center justify-between gap-3">
+          <div>
+            <p class="text-[11px] uppercase tracking-wider text-zinc-500 mb-0.5">Selected License</p>
+            <h3 id="buyPlanName" class="text-base font-semibold text-white"></h3>
+            <p id="buyPlanDuration" class="text-xs text-zinc-400"></p>
+          </div>
+          <span id="buyPlanPrice" class="text-2xl font-semibold text-white tracking-tight"></span>
+        </div>
+
+        <div>
+          <p class="text-xs font-medium text-zinc-300 mb-2">Payment Method</p>
+          <div id="paymentMethodGroup" class="grid grid-cols-2 gap-2">
+            <button type="button" data-pay="Card / Apple Pay" class="pay-pill active px-3 py-2 rounded-xl text-xs font-medium text-zinc-200 flex items-center gap-2">
+              <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+              <span>Card / Pay</span>
+            </button>
+            <button type="button" data-pay="Crypto (LTC / USDT)" class="pay-pill px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 flex items-center gap-2">
+              <i data-lucide="coins" class="w-3.5 h-3.5"></i>
+              <span>Crypto</span>
+            </button>
+            <button type="button" data-pay="Robux / Gift Card" class="pay-pill px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 flex items-center gap-2">
+              <i data-lucide="gift" class="w-3.5 h-3.5"></i>
+              <span>Robux / Gift</span>
+            </button>
+            <button type="button" data-pay="Discord Ticket" class="pay-pill px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 flex items-center gap-2">
+              <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+              <span>Discord Ticket</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-black/40 border border-white/[0.07] text-[11px] text-zinc-400 leading-relaxed">
+          Orders are fulfilled instantly via <span class="text-zinc-200 font-mono">discord.gg/shamancode</span> or your linked shop checkout URL.
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <button id="copyOrderInfoBtn" type="button" class="btn-glass-dark px-3.5 py-2 rounded-xl text-xs font-medium text-zinc-200 inline-flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy Order Note</span>
+          </button>
+          <button id="confirmBuyBtn" type="button" class="btn-glass-white px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5">
+            <span>Continue on Discord</span>
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Detail Modal (Rscripts-style Inspector) -->
+  <div id="scriptModal" class="modal-overlay fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="scriptModalWindowTitle">
+    <div class="modal-panel mac-window rounded-2xl w-full max-w-lg overflow-hidden">
+      <div class="px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#27C93F]"></span>
+          <span id="scriptModalWindowTitle" class="ml-2 text-xs font-medium text-zinc-300">Script Inspector</span>
+        </div>
+        <button id="closeScriptModalBtn" type="button" aria-label="Close Script modal" class="w-7 h-7 rounded-lg hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <!-- Thumbnail Preview -->
+        <div id="scriptModalThumb" class="relative aspect-video rounded-xl overflow-hidden border border-white/[0.1] bg-zinc-950"></div>
+
+        <!-- Title & Meta -->
+        <div>
+          <div class="flex items-start justify-between gap-3 mb-1.5">
+            <h3 id="scriptModalTitle" class="text-lg font-semibold text-white tracking-tight"></h3>
+            <span id="scriptModalViews" class="text-[11px] font-mono text-zinc-400 shrink-0"></span>
+          </div>
+          <p id="scriptModalDesc" class="text-xs text-zinc-400 leading-relaxed"></p>
+        </div>
+
+        <!-- Feature Tags -->
+        <div id="scriptModalTags" class="flex flex-wrap gap-1.5"></div>
+
+        <!-- Loadstring Code Box -->
+        <div class="rounded-xl bg-black/45 border border-white/[0.08] overflow-hidden">
+          <div class="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between text-[11px] text-zinc-500 font-mono">
+            <span>loadstring.lua</span>
+            <span id="scriptModalUpdated"></span>
+          </div>
+          <pre id="scriptModalCode" class="p-3 font-mono text-xs text-zinc-200 overflow-x-auto select-all whitespace-pre-wrap break-all"></pre>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <span id="scriptModalAuthor" class="text-xs text-zinc-500"></span>
+          <button id="scriptModalCopyBtn" type="button" class="btn-glass-white px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy Script</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key System Modal -->
+  <div id="keyModal" class="modal-overlay fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="keyModalTitle">
+    <div class="modal-panel mac-window rounded-2xl w-full max-w-md overflow-hidden">
+      <div class="px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#27C93F]"></span>
+          <span id="keyModalTitle" class="ml-2 text-xs font-medium text-zinc-300">ShamanCode Key System</span>
+        </div>
+        <button id="closeKeyModalBtn" type="button" aria-label="Close Key System modal" class="w-7 h-7 rounded-lg hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div>
+          <h3 class="text-base font-semibold text-white mb-1">24-Hour Free Session Key</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Generate a temporary preview key to test the loader interface, or upgrade to a permanent key with zero checkpoints.
+          </p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-black/45 border border-white/[0.09] flex items-center justify-between gap-2">
+          <code id="generatedKeyText" class="font-mono text-xs text-zinc-200 tracking-wider">SHMN-84F2-91C0-V24</code>
+          <button id="copyKeyBtn" type="button" class="px-2.5 py-1 rounded-lg bg-white/[0.08] hover:bg-white/[0.16] text-xs font-medium text-zinc-100 transition-colors">
+            Copy
+          </button>
+        </div>
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <button id="regenKeyBtn" type="button" class="btn-glass-dark px-3.5 py-2 rounded-xl text-xs font-medium text-zinc-200 inline-flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>New Key</span>
+          </button>
+          <div class="flex items-center gap-2">
+            <button id="keyModalBuyBtn" type="button" class="btn-glass-dark px-3.5 py-2 rounded-xl text-xs font-medium text-white inline-flex items-center gap-1.5">
+              <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+              <span>Buy Key</span>
+            </button>
+            <button id="doneKeyModalBtn" type="button" class="btn-glass-white px-4 py-2 rounded-xl text-xs font-semibold">
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module Inspector Modal -->
+  <div id="moduleModal" class="modal-overlay fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="moduleModalTitle">
+    <div class="modal-panel mac-window rounded-2xl w-full max-w-md overflow-hidden">
+      <div class="px-4 py-3 border-b border-white/[0.08] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#27C93F]"></span>
+          <span id="moduleModalTitle" class="ml-2 text-xs font-medium text-zinc-300">Module Inspector</span>
+        </div>
+        <button id="closeModuleModalBtn" type="button" aria-label="Close Module modal" class="w-7 h-7 rounded-lg hover:bg-white/[0.08] flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 id="moduleName" class="text-lg font-semibold text-white"></h3>
+          <span id="moduleTag" class="text-[11px] font-mono text-zinc-300 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.1]"></span>
+        </div>
+        <p id="moduleDesc" class="text-xs text-zinc-400 leading-relaxed"></p>
+        <div id="moduleSpecs" class="space-y-2 pt-1"></div>
+        <div class="pt-2 flex justify-end">
+          <button id="moduleCopyLoaderBtn" type="button" class="btn-glass-white px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy Universal Loader</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" role="status" aria-live="polite" class="toast-pill fixed bottom-6 left-1/2 z-[60] px-4 py-2.5 rounded-full glass-nav flex items-center gap-2 text-xs font-medium text-white shadow-2xl">
+    <span class="w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300">
+      <i data-lucide="check" class="w-2.5 h-2.5"></i>
+    </span>
+    <span id="toastText">Copied!</span>
+  </div>
+
+  <script>
+    (function () {
+      const LOADER_SNIPPET = 'loadstring(game:HttpGet("https://shamancode.example/universal-loader.lua"))()';
+
+      /* =========================================================================
+         GITHUB SCRIPT LIBRARY CONFIG (Rscripts-Style)
+         To add your own thumbnails on GitHub Pages:
+         1. Upload your 16:9 images to a folder like ./thumbnails/script-1.png
+         2. Replace `thumbnail: ""` with `thumbnail: "./thumbnails/script-1.png"`
+            (or paste a direct https:// image URL).
+         When empty, a clean monochrome glass preview artwork renders automatically.
+         ========================================================================= */
+      const SCRIPTS_DATA = [
+        {
+          id: 'universal-loader',
+          title: 'ShamanHub Universal v2.4',
+          game: 'Universal • All Games',
+          description: 'Flagship all-in-one loader with auto PlaceId detection, Bezier Aimbot, Drawing ESP, and instant profile sync.',
+          thumbnail: '', // e.g. './thumbnails/universal.png'
+          previewIcon: 'terminal',
+          previewLabel: 'UNIVERSAL V2.4',
+          author: '@shamancode',
+          views: '18.4k',
+          updated: 'Updated 2h ago',
+          verified: true,
+          keyless: true,
+          mobile: true,
+          universal: true,
+          tags: ['Aimbot', 'ESP', 'Universal'],
+          loadstring: 'loadstring(game:HttpGet("https://shamancode.example/universal-loader.lua"))()',
+        },
+        {
+          id: 'combat-aim-suite',
+          title: 'Silent Aim & Smooth Lock',
+          game: 'FPS & Arena Shooters',
+          description: 'Humanized camera smoothing, dynamic FOV ring, wall-check raycasting, and customizable bone priority.',
+          thumbnail: '', // e.g. './thumbnails/aim-suite.png'
+          previewIcon: 'crosshair',
+          previewLabel: 'COMBAT ENGINE',
+          author: '@shamancode',
+          views: '12.9k',
+          updated: 'Updated 1d ago',
+          verified: true,
+          keyless: false,
+          mobile: true,
+          universal: true,
+          tags: ['Aimbot', 'FOV Ring', 'Wall Check'],
+          loadstring: 'loadstring(game:HttpGet("https://shamancode.example/combat-suite.lua"))()',
+        },
+        {
+          id: 'visuals-esp-pro',
+          title: 'Shaman Visuals & ESP',
+          game: 'Universal Visuals',
+          description: 'Zero-FPS-drop Drawing API overlay featuring cornered 2D boxes, skeleton rigs, chams, and distance readouts.',
+          thumbnail: '', // e.g. './thumbnails/esp-visuals.png'
+          previewIcon: 'scan-eye',
+          previewLabel: 'DRAWING ESP',
+          author: '@scripterq',
+          views: '10.6k',
+          updated: 'Updated 3d ago',
+          verified: true,
+          keyless: true,
+          mobile: false,
+          universal: true,
+          tags: ['ESP', 'Chams', 'Tracers'],
+          loadstring: 'loadstring(game:HttpGet("https://shamancode.example/visuals-esp.lua"))()',
+        },
+        {
+          id: 'skin-changer-hub',
+          title: 'Cosmetic Skin Changer',
+          game: 'Supported FPS Titles',
+          description: 'Instant client-side weapon finishes, melee swaps, and persistent JSON loadout profiles with live preview.',
+          thumbnail: '', // e.g. './thumbnails/skin-changer.png'
+          previewIcon: 'sparkles',
+          previewLabel: 'SKIN CHANGER',
+          author: '@shamancode',
+          views: '9.1k',
+          updated: 'Updated 4d ago',
+          verified: true,
+          keyless: false,
+          mobile: true,
+          universal: false,
+          tags: ['Skin Changer', 'Presets', 'Auto-Apply'],
+          loadstring: 'loadstring(game:HttpGet("https://shamancode.example/skin-changer.lua"))()',
+        },
+        {
+          id: 'unlock-all-sync',
+          title: 'Unlock All & Inventory Sync',
+          game: 'Catalog & Loadout Games',
+          description: 'Fast local catalog indexing with one-click unlock toggle, safe state revert, and lightweight memory cache.',
+          thumbnail: '', // e.g. './thumbnails/unlock-all.png'
+          previewIcon: 'unlock',
+          previewLabel: 'UNLOCK ALL',
+          author: '@scripterq',
+          views: '14.2k',
+          updated: 'Updated 5d ago',
+          verified: true,
+          keyless: true,
+          mobile: true,
+          universal: false,
+          tags: ['Unlock All', 'Safe Revert', 'Keyless'],
+          loadstring: 'loadstring(game:HttpGet("https://shamancode.example/unlock-all.lua"))()',
+        },
+        {
+          id: 'mobile-lite-hub',
+          title: 'ShamanHub Mobile Lite',
+          game: 'Touch-Optimized Universal',
+          description: 'Compact floating macOS glass panel tailored for Delta and Codex with thumb-friendly toggles and low RAM use.',
+          thumbnail: '', // e.g. './thumbnails/mobile-lite.png'
+          previewIcon: 'smartphone',
+          previewLabel: 'MOBILE LITE',
+          author: '@shamancode',
+          views: '7.8k',
+          updated: 'Updated 1w ago',
+          verified: true,
+          keyless: true,
+          mobile: true,
+          universal: true,
+          tags: ['Mobile', 'Keyless', 'Low RAM'],
+          loadstring: 'loadstring(game:HttpGet("https://shamancode.example/mobile-lite.lua"))()',
+        },
+      ];
+
+      const KEY_PLANS = {
+        weekly: {
+          name: 'Weekly Key',
+          duration: '7-Day Full Access • Instant HWID Sync',
+          price: '$2.99',
+        },
+        monthly: {
+          name: 'Monthly Key',
+          duration: '30-Day Full Access • Priority Updates',
+          price: '$6.99',
+        },
+        lifetime: {
+          name: 'Lifetime Key',
+          duration: 'Permanent License • VIP & Unlimited Resets',
+          price: '$19.99',
+        },
+      };
+
+      const MODULES = {
+        aimbot: {
+          name: 'Aimbot',
+          tag: 'Sub-ms Lock',
+          desc: 'Precision targeting engine with customizable Bezier smoothing, dynamic FOV circle, and team/wall checks.',
+          specs: [
+            { label: 'Smoothing Range', value: '0.05 – 1.00 (Bezier)' },
+            { label: 'Target Selection', value: 'Closest to Cursor / Distance' },
+            { label: 'Hitbox Priority', value: 'Head, UpperTorso, Dynamic' },
+            { label: 'Visibility Check', value: 'Raycast Enabled' },
+          ],
+        },
+        esp: {
+          name: 'ESP',
+          tag: 'Drawing API',
+          desc: 'Ultra-clean overlay pipeline using native Drawing objects with smart culling and minimal frame-time impact.',
+          specs: [
+            { label: 'Box Styles', value: 'Full 2D, Cornered, 3D' },
+            { label: 'Indicators', value: 'Health Bar, Distance, Weapon' },
+            { label: 'Render Budget', value: '< 0.2ms per frame' },
+            { label: 'Max Render Range', value: 'Configurable (50 – 2,500 studs)' },
+          ],
+        },
+        skinchanger: {
+          name: 'Skin Changer',
+          tag: 'Instant Swap',
+          desc: 'Client-side cosmetic manager with instant finish switching and persistent JSON profile storage.',
+          specs: [
+            { label: 'Apply Speed', value: 'Instant (Zero Respawn)' },
+            { label: 'Preset Profiles', value: 'Unlimited Local JSON' },
+            { label: 'Wear & Float', value: 'Customizable Finish Controls' },
+            { label: 'Auto-Load', value: 'Triggers on Game Join' },
+          ],
+        },
+        unlockall: {
+          name: 'Unlock All',
+          tag: 'One-Click Sync',
+          desc: 'Unified local inventory unlocker designed for supported games with instant one-click state revert.',
+          specs: [
+            { label: 'Catalog Indexing', value: 'Automatic on Load' },
+            { label: 'State Safety', value: 'Clean Revert Toggle' },
+            { label: 'Memory Footprint', value: 'Low-Allocation Cache' },
+            { label: 'Supported Titles', value: 'Universal + Game-Specific' },
+          ],
+        },
+      };
+
+      function refreshIcons() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+
+      // Escape HTML for safe rendering
+      function escHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // Build frosted monochrome glass thumbnail artwork or real <img> when thumbnail URL is set
+      function renderThumbnailMarkup(script, isModal) {
+        const fallbackArt = `
+          <div class="absolute inset-0 bg-gradient-to-br from-zinc-900 via-[#0e0e13] to-zinc-950 flex flex-col items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 opacity-30" style="background-image: linear-gradient(to right, rgba(255,255,255,0.065) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.065) 1px, transparent 1px); background-size: 24px 24px;"></div>
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-28 rounded-full bg-white/[0.08] blur-2xl"></div>
+            <div class="relative z-10 flex flex-col items-center gap-2">
+              <div class="w-11 h-11 rounded-2xl bg-white/[0.07] border border-white/[0.15] flex items-center justify-center text-zinc-100 shadow-inner">
+                <i data-lucide="${escHtml(script.previewIcon || 'code-2')}" class="w-5 h-5"></i>
+              </div>
+              <span class="font-mono text-[10px] tracking-[0.2em] text-zinc-400 uppercase">${escHtml(script.previewLabel || 'SHAMANHUB')}</span>
+            </div>
+          </div>
+        `;
+
+        const imgTag = script.thumbnail
+          ? `<img src="${escHtml(script.thumbnail)}" alt="${escHtml(script.title)} thumbnail" loading="lazy" class="relative z-10 w-full h-full object-cover ${isModal ? '' : 'transition-transform duration-500 group-hover:scale-105'}" onerror="this.style.display='none'" />`
+          : '';
+
+        const badgesTopLeft = `
+          <div class="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5">
+            ${script.verified ? `<span class="thumb-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-zinc-100"><i data-lucide="badge-check" class="w-3 h-3 text-emerald-400"></i><span>Verified</span></span>` : ''}
+            <span class="thumb-badge px-2 py-0.5 rounded-full text-[10px] font-medium ${script.keyless ? 'text-zinc-200' : 'text-zinc-400'}">${script.keyless ? 'Keyless' : 'Key System'}</span>
+          </div>
+        `;
+
+        const badgesTopRight = `
+          <div class="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
+            ${script.mobile ? `<span class="thumb-badge px-2 py-0.5 rounded-full text-[10px] font-medium text-zinc-300 inline-flex items-center gap-1"><i data-lucide="smartphone" class="w-2.5 h-2.5"></i><span>Mobile</span></span>` : ''}
+            <span class="thumb-badge px-2 py-0.5 rounded-full text-[10px] font-mono text-zinc-300 inline-flex items-center gap-1"><i data-lucide="eye" class="w-2.5 h-2.5 text-zinc-400"></i><span>${escHtml(script.views)}</span></span>
+          </div>
+        `;
+
+        const bottomScrim = `
+          <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#09090B]/95 via-[#09090B]/40 to-transparent z-10 pointer-events-none"></div>
+          <div class="absolute bottom-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-medium text-zinc-300 truncate">${escHtml(script.game)}</span>
+          </div>
+        `;
+
+        return `${fallbackArt}${imgTag}${badgesTopLeft}${badgesTopRight}${bottomScrim}`;
+      }
+
+      // Toast helper
+      const toastEl = document.getElementById('toast');
+      const toastText = document.getElementById('toastText');
+      let toastTimer = null;
+
+      function showToast(message) {
+        if (!toastEl || !toastText) return;
+        toastText.textContent = message;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastEl.classList.remove('show');
+        }, 2200);
+      }
+
+      // Clipboard helper with fallback
+      function copyToClipboard(text, feedbackMessage) {
+        const done = () => showToast(feedbackMessage || 'Copied!');
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText(text).then(done).catch(() => {
+            fallbackCopy(text);
+            done();
+          });
+        } else {
+          fallbackCopy(text);
+          done();
+        }
+      }
+
+      function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          // Ignore clipboard errors in restricted environments
+        }
+        document.body.removeChild(textarea);
+      }
+
+      // Spotlight mouse-tracking helper
+      function bindSpotlightCards(root) {
+        const cards = (root || document).querySelectorAll('.spotlight-card');
+        cards.forEach((card) => {
+          if (card.dataset.spotlightBound === '1') return;
+          card.dataset.spotlightBound = '1';
+          card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+            card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+          });
+        });
+      }
+
+      // Rscripts-Style Script Library State & Renderer
+      const scriptLibraryGrid = document.getElementById('scriptLibraryGrid');
+      const scriptEmptyState = document.getElementById('scriptEmptyState');
+      const scriptCountBadge = document.getElementById('scriptCountBadge');
+      const scriptSearchInput = document.getElementById('scriptSearchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+      const filterButtons = document.querySelectorAll('#scriptFilterGroup .filter-pill');
+
+      let activeFilter = 'all';
+      let searchQuery = '';
+      let activeScriptForModal = null;
+
+      function getFilteredScripts() {
+        const q = searchQuery.trim().toLowerCase();
+        return SCRIPTS_DATA.filter((item) => {
+          if (activeFilter === 'universal' && !item.universal) return false;
+          if (activeFilter === 'keyless' && !item.keyless) return false;
+          if (activeFilter === 'verified' && !item.verified) return false;
+          if (activeFilter === 'mobile' && !item.mobile) return false;
+          if (!q) return true;
+          const haystack = [
+            item.title,
+            item.game,
+            item.description,
+            item.author,
+            item.keyless ? 'keyless' : 'key system',
+            item.mobile ? 'mobile' : '',
+            ...(item.tags || []),
+          ].join(' ').toLowerCase();
+          return haystack.includes(q);
+        });
+      }
+
+      function renderScriptLibrary() {
+        if (!scriptLibraryGrid) return;
+        const items = getFilteredScripts();
+
+        if (scriptCountBadge) {
+          scriptCountBadge.textContent = `${items.length} ${items.length === 1 ? 'Release' : 'Releases'}`;
+        }
+
+        if (items.length === 0) {
+          scriptLibraryGrid.innerHTML = '';
+          scriptLibraryGrid.classList.add('hidden');
+          if (scriptEmptyState) scriptEmptyState.classList.remove('hidden');
+          return;
+        }
+
+        scriptLibraryGrid.classList.remove('hidden');
+        if (scriptEmptyState) scriptEmptyState.classList.add('hidden');
+
+        scriptLibraryGrid.innerHTML = items.map((script) => `
+          <article class="spotlight-card group flex flex-col">
+            <!-- 16:9 Thumbnail -->
+            <button type="button" data-inspect-script="${escHtml(script.id)}" class="relative aspect-video w-full overflow-hidden border-b border-white/[0.08] text-left focus:outline-none">
+              ${renderThumbnailMarkup(script, false)}
+            </button>
+
+            <!-- Card Body -->
+            <div class="relative z-10 p-4 flex flex-col flex-1">
+              <div class="flex items-start justify-between gap-2 mb-1.5">
+                <button type="button" data-inspect-script="${escHtml(script.id)}" class="text-left text-[15px] font-semibold text-white tracking-tight hover:text-zinc-200 transition-colors truncate">
+                  ${escHtml(script.title)}
+                </button>
+              </div>
+
+              <p class="text-xs text-zinc-400 leading-relaxed clamp-2 mb-3.5">
+                ${escHtml(script.description)}
+              </p>
+
+              <!-- Tags -->
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                ${(script.tags || []).map((t) => `<span class="px-2 py-0.5 rounded-md text-[10px] font-medium text-zinc-300 bg-white/[0.04] border border-white/[0.08]">${escHtml(t)}</span>`).join('')}
+              </div>
+
+              <!-- Footer Meta + Actions -->
+              <div class="mt-auto pt-3 border-t border-white/[0.07] flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <p class="text-[11px] font-medium text-zinc-300 truncate">${escHtml(script.author)}</p>
+                  <p class="text-[10px] text-zinc-500">${escHtml(script.updated)}</p>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button type="button" data-inspect-script="${escHtml(script.id)}" aria-label="Inspect ${escHtml(script.title)}" class="btn-glass-dark w-8 h-8 rounded-lg flex items-center justify-center text-zinc-300 hover:text-white">
+                    <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button type="button" data-copy-script="${escHtml(script.id)}" class="btn-glass-white px-3 h-8 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5">
+                    <i data-lucide="copy" class="w-3 h-3"></i>
+                    <span>Copy</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `).join('');
+
+        refreshIcons();
+        bindSpotlightCards(scriptLibraryGrid);
+      }
+
+      // Event delegation for Script Library cards
+      if (scriptLibraryGrid) {
+        scriptLibraryGrid.addEventListener('click', (e) => {
+          const copyBtn = e.target.closest('[data-copy-script]');
+          if (copyBtn) {
+            const id = copyBtn.getAttribute('data-copy-script');
+            const script = SCRIPTS_DATA.find((s) => s.id === id);
+            if (script) {
+              copyToClipboard(script.loadstring, `Copied ${script.title}!`);
+            }
+            return;
+          }
+
+          const inspectBtn = e.target.closest('[data-inspect-script]');
+          if (inspectBtn) {
+            const id = inspectBtn.getAttribute('data-inspect-script');
+            const script = SCRIPTS_DATA.find((s) => s.id === id);
+            if (script) openScriptModal(script);
+          }
+        });
+      }
+
+      // Filter pills
+      filterButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          activeFilter = btn.getAttribute('data-filter') || 'all';
+          filterButtons.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderScriptLibrary();
+        });
+      });
+
+      // Search input
+      if (scriptSearchInput) {
+        scriptSearchInput.addEventListener('input', (e) => {
+          searchQuery = e.target.value || '';
+          if (clearSearchBtn) {
+            if (searchQuery.length > 0) {
+              clearSearchBtn.classList.remove('hidden');
+              clearSearchBtn.classList.add('flex');
+            } else {
+              clearSearchBtn.classList.add('hidden');
+              clearSearchBtn.classList.remove('flex');
+            }
+          }
+          renderScriptLibrary();
+        });
+      }
+
+      function resetScriptFilters() {
+        searchQuery = '';
+        activeFilter = 'all';
+        if (scriptSearchInput) scriptSearchInput.value = '';
+        if (clearSearchBtn) {
+          clearSearchBtn.classList.add('hidden');
+          clearSearchBtn.classList.remove('flex');
+        }
+        filterButtons.forEach((b) => {
+          b.classList.toggle('active', b.getAttribute('data-filter') === 'all');
+        });
+        renderScriptLibrary();
+      }
+
+      if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+          searchQuery = '';
+          if (scriptSearchInput) {
+            scriptSearchInput.value = '';
+            scriptSearchInput.focus();
+          }
+          clearSearchBtn.classList.add('hidden');
+          clearSearchBtn.classList.remove('flex');
+          renderScriptLibrary();
+        });
+      }
+      if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', resetScriptFilters);
+      }
+
+      // Buy Key Checkout Modal
+      const buyModal = document.getElementById('buyModal');
+      const buyPlanName = document.getElementById('buyPlanName');
+      const buyPlanDuration = document.getElementById('buyPlanDuration');
+      const buyPlanPrice = document.getElementById('buyPlanPrice');
+      const closeBuyModalBtn = document.getElementById('closeBuyModalBtn');
+      const copyOrderInfoBtn = document.getElementById('copyOrderInfoBtn');
+      const confirmBuyBtn = document.getElementById('confirmBuyBtn');
+      const payPills = document.querySelectorAll('#paymentMethodGroup .pay-pill');
+
+      let selectedPlan = KEY_PLANS.monthly;
+      let selectedPayment = 'Card / Apple Pay';
+
+      function openBuyModal(planKey) {
+        const plan = KEY_PLANS[planKey] || KEY_PLANS.monthly;
+        selectedPlan = plan;
+        if (buyPlanName) buyPlanName.textContent = plan.name;
+        if (buyPlanDuration) buyPlanDuration.textContent = plan.duration;
+        if (buyPlanPrice) buyPlanPrice.textContent = plan.price;
+        if (buyModal) buyModal.classList.add('open');
+      }
+
+      function closeBuyModal() {
+        if (buyModal) buyModal.classList.remove('open');
+      }
+
+      document.querySelectorAll('[data-buy-plan]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const planKey = btn.getAttribute('data-buy-plan');
+          openBuyModal(planKey);
+        });
+      });
+
+      payPills.forEach((pill) => {
+        pill.addEventListener('click', () => {
+          selectedPayment = pill.getAttribute('data-pay') || 'Card / Apple Pay';
+          payPills.forEach((p) => p.classList.remove('active'));
+          pill.classList.add('active');
+        });
+      });
+
+      if (closeBuyModalBtn) closeBuyModalBtn.addEventListener('click', closeBuyModal);
+      if (buyModal) {
+        buyModal.addEventListener('click', (e) => {
+          if (e.target === buyModal) closeBuyModal();
+        });
+      }
+
+      if (copyOrderInfoBtn) {
+        copyOrderInfoBtn.addEventListener('click', () => {
+          const orderNote = `ShamanHub Order — ${selectedPlan.name} (${selectedPlan.price}) via ${selectedPayment} | discord.gg/shamancode`;
+          copyToClipboard(orderNote, 'Order note copied!');
+        });
+      }
+
+      if (confirmBuyBtn) {
+        confirmBuyBtn.addEventListener('click', () => {
+          copyToClipboard('discord.gg/shamancode', `Discord invite copied for ${selectedPlan.name}!`);
+          closeBuyModal();
+        });
+      }
+
+      // Script Detail Modal
+      const scriptModal = document.getElementById('scriptModal');
+      const scriptModalThumb = document.getElementById('scriptModalThumb');
+      const scriptModalTitle = document.getElementById('scriptModalTitle');
+      const scriptModalViews = document.getElementById('scriptModalViews');
+      const scriptModalDesc = document.getElementById('scriptModalDesc');
+      const scriptModalTags = document.getElementById('scriptModalTags');
+      const scriptModalUpdated = document.getElementById('scriptModalUpdated');
+      const scriptModalCode = document.getElementById('scriptModalCode');
+      const scriptModalAuthor = document.getElementById('scriptModalAuthor');
+      const closeScriptModalBtn = document.getElementById('closeScriptModalBtn');
+      const scriptModalCopyBtn = document.getElementById('scriptModalCopyBtn');
+
+      function openScriptModal(script) {
+        if (!scriptModal || !script) return;
+        activeScriptForModal = script;
+        scriptModalThumb.innerHTML = renderThumbnailMarkup(script, true);
+        scriptModalTitle.textContent = script.title;
+        scriptModalViews.textContent = `${script.views} views`;
+        scriptModalDesc.textContent = script.description;
+        scriptModalUpdated.textContent = script.updated;
+        scriptModalCode.textContent = script.loadstring;
+        scriptModalAuthor.textContent = `Published by ${script.author}`;
+        scriptModalTags.innerHTML = (script.tags || [])
+          .map((t) => `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-zinc-300 bg-white/[0.05] border border-white/[0.09]">${escHtml(t)}</span>`)
+          .join('');
+        refreshIcons();
+        scriptModal.classList.add('open');
+      }
+
+      function closeScriptModal() {
+        if (scriptModal) scriptModal.classList.remove('open');
+      }
+
+      if (closeScriptModalBtn) closeScriptModalBtn.addEventListener('click', closeScriptModal);
+      if (scriptModal) {
+        scriptModal.addEventListener('click', (e) => {
+          if (e.target === scriptModal) closeScriptModal();
+        });
+      }
+      if (scriptModalCopyBtn) {
+        scriptModalCopyBtn.addEventListener('click', () => {
+          if (activeScriptForModal) {
+            copyToClipboard(activeScriptForModal.loadstring, `Copied ${activeScriptForModal.title}!`);
+          }
+        });
+      }
+
+      // Copy Hero Loader button
+      const copyLoaderBtn = document.getElementById('copyLoaderBtn');
+      const copyBtnLabel = document.getElementById('copyBtnLabel');
+      let copyResetTimer = null;
+
+      function triggerLoaderCopy() {
+        copyToClipboard(LOADER_SNIPPET, 'Copied!');
+        if (copyBtnLabel) {
+          copyBtnLabel.textContent = 'Copied!';
+          clearTimeout(copyResetTimer);
+          copyResetTimer = setTimeout(() => {
+            copyBtnLabel.textContent = 'Copy';
+          }, 2000);
+        }
+      }
+
+      if (copyLoaderBtn) {
+        copyLoaderBtn.addEventListener('click', triggerLoaderCopy);
+      }
+
+      // Get Script navbar CTA -> scroll to loader, pulse window, copy script
+      const getScriptNavBtn = document.getElementById('getScriptNavBtn');
+      const loaderSection = document.getElementById('loader');
+      const macWindow = document.getElementById('macWindow');
+
+      if (getScriptNavBtn && loaderSection) {
+        getScriptNavBtn.addEventListener('click', () => {
+          loaderSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (macWindow) {
+            macWindow.classList.remove('highlight-pulse');
+            void macWindow.offsetWidth;
+            macWindow.classList.add('highlight-pulse');
+            setTimeout(() => macWindow.classList.remove('highlight-pulse'), 1400);
+          }
+          triggerLoaderCopy();
+        });
+      }
+
+      // Navbar scroll shadow enhancement
+      const mainNav = document.getElementById('mainNav');
+      window.addEventListener('scroll', () => {
+        if (!mainNav) return;
+        mainNav.classList.toggle('scrolled', window.scrollY > 24);
+      }, { passive: true });
+
+      // Mobile menu toggle
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+
+      function closeMobileMenu() {
+        if (!mobileMenu || !mobileMenuBtn) return;
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('flex');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+          const isOpen = !mobileMenu.classList.contains('hidden');
+          if (isOpen) {
+            closeMobileMenu();
+          } else {
+            mobileMenu.classList.remove('hidden');
+            mobileMenu.classList.add('flex');
+            mobileMenuBtn.setAttribute('aria-expanded', 'true');
+          }
+        });
+
+        mobileMenu.querySelectorAll('.mobile-nav-link').forEach((link) => {
+          link.addEventListener('click', closeMobileMenu);
+        });
+      }
+
+      // Module Inspector modal
+      const moduleModal = document.getElementById('moduleModal');
+      const moduleName = document.getElementById('moduleName');
+      const moduleTag = document.getElementById('moduleTag');
+      const moduleDesc = document.getElementById('moduleDesc');
+      const moduleSpecs = document.getElementById('moduleSpecs');
+      const closeModuleModalBtn = document.getElementById('closeModuleModalBtn');
+      const moduleCopyLoaderBtn = document.getElementById('moduleCopyLoaderBtn');
+
+      function openModuleModal(key) {
+        const mod = MODULES[key];
+        if (!mod || !moduleModal) return;
+        moduleName.textContent = mod.name;
+        moduleTag.textContent = mod.tag;
+        moduleDesc.textContent = mod.desc;
+        moduleSpecs.innerHTML = mod.specs.map((item) => `
+          <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.07] text-xs">
+            <span class="text-zinc-400">${escHtml(item.label)}</span>
+            <span class="font-mono text-zinc-200">${escHtml(item.value)}</span>
+          </div>
+        `).join('');
+        moduleModal.classList.add('open');
+      }
+
+      function closeModuleModal() {
+        if (moduleModal) moduleModal.classList.remove('open');
+      }
+
+      document.querySelectorAll('[data-module]').forEach((card) => {
+        card.addEventListener('click', () => {
+          const key = card.getAttribute('data-module');
+          if (key) openModuleModal(key);
+        });
+      });
+
+      if (closeModuleModalBtn) closeModuleModalBtn.addEventListener('click', closeModuleModal);
+      if (moduleModal) {
+        moduleModal.addEventListener('click', (e) => {
+          if (e.target === moduleModal) closeModuleModal();
+        });
+      }
+      if (moduleCopyLoaderBtn) {
+        moduleCopyLoaderBtn.addEventListener('click', () => {
+          triggerLoaderCopy();
+          closeModuleModal();
+        });
+      }
+
+      // Key System modal
+      const keyModal = document.getElementById('keyModal');
+      const openKeyNavBtn = document.getElementById('openKeyNavBtn');
+      const openKeyMobileBtn = document.getElementById('openKeyMobileBtn');
+      const openKeyInlineBtn = document.getElementById('openKeyInlineBtn');
+      const closeKeyModalBtn = document.getElementById('closeKeyModalBtn');
+      const doneKeyModalBtn = document.getElementById('doneKeyModalBtn');
+      const keyModalBuyBtn = document.getElementById('keyModalBuyBtn');
+      const generatedKeyText = document.getElementById('generatedKeyText');
+      const copyKeyBtn = document.getElementById('copyKeyBtn');
+      const regenKeyBtn = document.getElementById('regenKeyBtn');
+
+      function openKeyModal() {
+        if (keyModal) keyModal.classList.add('open');
+      }
+
+      function closeKeyModal() {
+        if (keyModal) keyModal.classList.remove('open');
+      }
+
+      function generateRandomKey() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        const seg = (len) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        return `SHMN-${seg(4)}-${seg(4)}-V24`;
+      }
+
+      [openKeyNavBtn, openKeyMobileBtn, openKeyInlineBtn].forEach((btn) => {
+        if (btn) btn.addEventListener('click', openKeyModal);
+      });
+      [closeKeyModalBtn, doneKeyModalBtn].forEach((btn) => {
+        if (btn) btn.addEventListener('click', closeKeyModal);
+      });
+      if (keyModalBuyBtn) {
+        keyModalBuyBtn.addEventListener('click', () => {
+          closeKeyModal();
+          openBuyModal('monthly');
+        });
+      }
+      if (keyModal) {
+        keyModal.addEventListener('click', (e) => {
+          if (e.target === keyModal) closeKeyModal();
+        });
+      }
+      if (regenKeyBtn && generatedKeyText) {
+        regenKeyBtn.addEventListener('click', () => {
+          generatedKeyText.textContent = generateRandomKey();
+          showToast('New session key generated');
+        });
+      }
+      if (copyKeyBtn && generatedKeyText) {
+        copyKeyBtn.addEventListener('click', () => {
+          copyToClipboard(generatedKeyText.textContent.trim(), 'Key copied!');
+        });
+      }
+
+      // Escape key closes modals
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeBuyModal();
+          closeScriptModal();
+          closeKeyModal();
+          closeModuleModal();
+          closeMobileMenu();
+        }
+      });
+
+      // Supported Executor interactive selector
+      const executorPills = document.querySelectorAll('.executor-pill');
+      const executorDetail = document.getElementById('executorDetail');
+
+      function setActiveExecutor(pill) {
+        executorPills.forEach((p) => {
+          p.classList.remove('active');
+          p.classList.add('text-zinc-300');
+          p.classList.remove('text-zinc-200');
+        });
+        pill.classList.add('active');
+        if (executorDetail) {
+          executorDetail.textContent = pill.getAttribute('data-info') || '';
+        }
+      }
+
+      executorPills.forEach((pill) => {
+        pill.addEventListener('click', () => setActiveExecutor(pill));
+      });
+      if (executorPills.length > 0) {
+        setActiveExecutor(executorPills[0]);
+      }
+
+      // Footer social copy buttons
+      document.querySelectorAll('.social-copy-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const text = btn.getAttribute('data-copy-text');
+          const label = btn.getAttribute('data-copy-label');
+          if (text) {
+            copyToClipboard(text, `Copied ${label || text}`);
+          }
+        });
+      });
+
+      // Initial render & bindings
+      renderScriptLibrary();
+      refreshIcons();
+      bindSpotlightCards(document);
+
+      // Scroll-triggered Framer-Motion-style entrance reveals
+      const reveals = document.querySelectorAll('.motion-reveal');
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.08 }
+        );
+        reveals.forEach((el) => observer.observe(el));
+      } else {
+        reveals.forEach((el) => el.classList.add('is-visible'));
+      }
+    })();
+  </script>
+</body>
+</html>
